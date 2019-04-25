@@ -1,33 +1,45 @@
 const api = 'https://pokeapi.co/api/v2'
 
-function buildPokemon(name){
+function buildPokemon(pokemon) {
 	return `
 		<div class = "row pokemon">
 			<img src="">
 			<div class="col">
-				<span>${name}</span>
+				<span>${pokemon.name}</span>
 				<span>typ</span>
-				<span>waga</span>
+				<span>${pokemon.weight}</span>
 			</div>
 		</div>
 	`
 }
 
 function loadPokemons() {
-	fetch(api + "/pokemon")
-		.then(function (resp) {
-			return resp.json();
-		})
+	const pro = fetch(api + "/pokemon"); //Promise
+	pro.then(function (resp) {
+		return resp.json();
+	})
 		.then(function (json) {
-			const listaPokemonow = json.results; // [{},{}]
-			const listaHtmliPokemonow = listaPokemonow.map( 				// ["",""]
-						function(pokemon){ return buildPokemon(pokemon.name); } )
-			const htmlWszystkichPokemonow = listaHtmliPokemonow.join(); // ""
-			document.querySelector("#pokemony").innerHTML=htmlWszystkichPokemonow;
+			let listaPokemonow = json.results; // [{},{}]
+			let requesty = listaPokemonow.map(
+				(pokemon) => {
+					return fetch(pokemon.url)
+						.then(function (resp) {
+							return resp.json();
+						})
+				}
+			)
+			Promise.all(requesty).then(function (pokemony) {
+				const listaHtmliPokemonow = pokemony
+					.map((pokemon) => buildPokemon(pokemon))
+				const htmlWszystkichPokemonow = listaHtmliPokemonow.join("");
+				document.querySelector("#pokemony").innerHTML = htmlWszystkichPokemonow;
+			})
 		})
 		.catch(function (err) {
 			console.error(err)
 		})
+
 }
 
-document.addEventListener("load",loadPokemons)
+document.addEventListener("load", loadPokemons);
+loadPokemons();
